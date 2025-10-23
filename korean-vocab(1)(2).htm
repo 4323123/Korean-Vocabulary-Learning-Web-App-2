@@ -1,0 +1,258 @@
+﻿
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>韩语单词卡</title>
+<style>
+body {
+    background-color: #f5f5f5;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+.container {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 500px;
+    margin: 0 auto;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 30px;
+    margin: 20px 0;
+    text-align: center;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.word {
+    font-size: 40px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+.meaning {
+    font-size: 20px;
+    color: #666;
+    margin: 5px 0;
+}
+.type {
+    font-size: 14px;
+    color: #999;
+}
+.buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+}
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.show {
+    background: #4CAF50;
+    color: white;
+}
+.know {
+    background: #2196F3;
+    color: white;
+}
+.dont-know {
+    background: #FF9800;
+    color: white;
+}
+.progress {
+    text-align: center;
+    margin-top: 20px;
+    padding: 10px;
+    background: #f0f0f0;
+    border-radius: 5px;
+}
+.hidden {
+    display: none;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>韩语单词学习</h1>
+    
+    <div class="card">
+        <div class="word" id="word">사람</div>
+        <div class="meaning hidden" id="meaning">人</div>
+        <div class="type hidden" id="wordtype">名词</div>
+    </div>
+    
+    <div class="buttons">
+        <button class="btn show" onclick="showMeaning()">显示意思</button>
+        <button class="btn know hidden" onclick="markKnown()">认识</button>
+        <button class="btn dont-know hidden" onclick="markUnknown()">不认识</button>
+    </div>
+    
+    <div class="progress">
+        <span id="progress">进度: 0/50</span>
+    </div>
+</div>
+
+<script>
+// 单词数据
+var words = [
+    {k:'사람', c:'人', t:'名词', l:0, n:0},
+    {k:'학교', c:'学校', t:'名词', l:0, n:0},
+    {k:'학생', c:'学生', t:'名词', l:0, n:0},
+    {k:'선생님', c:'老师', t:'名词', l:0, n:0},
+    {k:'친구', c:'朋友', t:'名词', l:0, n:0},
+    {k:'가족', c:'家人', t:'名词', l:0, n:0},
+    {k:'아버지', c:'父亲', t:'名词', l:0, n:0},
+    {k:'어머니', c:'母亲', t:'名词', l:0, n:0},
+    {k:'시간', c:'时间', t:'名词', l:0, n:0},
+    {k:'오늘', c:'今天', t:'名词', l:0, n:0},
+    {k:'내일', c:'明天', t:'名词', l:0, n:0},
+    {k:'집', c:'家', t:'名词', l:0, n:0},
+    {k:'방', c:'房间', t:'名词', l:0, n:0},
+    {k:'음식', c:'食物', t:'名词', l:0, n:0},
+    {k:'사과', c:'苹果', t:'名词', l:0, n:0},
+    {k:'책', c:'书', t:'名词', l:0, n:0},
+    {k:'의자', c:'椅子', t:'名词', l:0, n:0},
+    {k:'가다', c:'去', t:'动词', l:0, n:0},
+    {k:'오다', c:'来', t:'动词', l:0, n:0},
+    {k:'먹다', c:'吃', t:'动词', l:0, n:0},
+    {k:'마시다', c:'喝', t:'动词', l:0, n:0},
+    {k:'보다', c:'看', t:'动词', l:0, n:0},
+    {k:'읽다', c:'读', t:'动词', l:0, n:0},
+    {k:'쓰다', c:'写', t:'动词', l:0, n:0},
+    {k:'공부하다', c:'学习', t:'动词', l:0, n:0},
+    {k:'자다', c:'睡觉', t:'动词', l:0, n:0},
+    {k:'앉다', c:'坐', t:'动词', l:0, n:0},
+    {k:'크다', c:'大', t:'形容词', l:0, n:0},
+    {k:'작다', c:'小', t:'形容词', l:0, n:0},
+    {k:'좋다', c:'好', t:'形容词', l:0, n:0},
+    {k:'나쁘다', c:'坏', t:'形容词', l:0, n:0},
+    {k:'빠르다', c:'快', t:'形容词', l:0, n:0},
+    {k:'느리다', c:'慢', t:'形容词', l:0, n:0},
+    {k:'많다', c:'多', t:'形容词', l:0, n:0},
+    {k:'적다', c:'少', t:'形容词', l:0, n:0}
+];
+
+var current = 0;
+var learned = 0;
+
+// 复习时间设置
+var times = [0, 5000, 10000, 30000];
+
+// 页面加载后开始
+window.onload = function() {
+    nextWord();
+    updateProgress();
+};
+
+// 显示单词意思
+function showMeaning() {
+    document.getElementById('meaning').classList.remove('hidden');
+    document.getElementById('wordtype').classList.remove('hidden');
+    document.querySelector('.show').classList.add('hidden');
+    document.querySelector('.know').classList.remove('hidden');
+    document.querySelector('.dont-know').classList.remove('hidden');
+}
+
+// 标记为认识
+function markKnown() {
+    var word = words[current];
+    
+    if (word.l == 0) {
+        learned++;
+    }
+    
+    word.l = Math.min(word.l + 1, 3);
+    word.n = Date.now() + times[word.l];
+    
+    nextWord();
+    updateProgress();
+}
+
+// 标记为不认识
+function markUnknown() {
+    var word = words[current];
+    
+    word.l = Math.max(word.l - 1, 0);
+    word.n = Date.now() + times[word.l];
+    
+    nextWord();
+    updateProgress();
+}
+
+// 选择下一个单词
+function nextWord() {
+    var now = Date.now();
+    
+    // 先找需要复习的
+    for (var i = 0; i < words.length; i++) {
+        if (words[i].l > 0 && words[i].n <= now) {
+            current = i;
+            showWord();
+            return;
+        }
+    }
+    
+    // 找新单词
+    var newWords = [];
+    for (var i = 0; i < words.length; i++) {
+        if (words[i].l == 0) {
+            newWords.push(i);
+        }
+    }
+    
+    if (newWords.length > 0) {
+        current = newWords[0];
+    } else {
+        current = Math.floor(Math.random() * words.length);
+    }
+    
+    showWord();
+}
+
+// 显示当前单词
+function showWord() {
+    var word = words[current];
+    
+    document.getElementById('word').textContent = word.k;
+    document.getElementById('meaning').textContent = word.c;
+    document.getElementById('wordtype').textContent = word.t;
+    
+    document.getElementById('meaning').classList.add('hidden');
+    document.getElementById('wordtype').classList.add('hidden');
+    document.querySelector('.show').classList.remove('hidden');
+    document.querySelector('.know').classList.add('hidden');
+    document.querySelector('.dont-know').classList.add('hidden');
+}
+
+// 更新进度
+function updateProgress() {
+    var due = 0;
+    var now = Date.now();
+    
+    for (var i = 0; i < words.length; i++) {
+        if (words[i].l > 0 && words[i].n <= now) {
+            due++;
+        }
+    }
+    
+    document.getElementById('progress').textContent = '掌握: ' + learned + '/' + words.length + ' | 待复习: ' + due;
+}
+</script>
+
+</body>
+</html>
